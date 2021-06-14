@@ -56,20 +56,23 @@ def add_student():
     global add_student_screen
     add_student_screen = Toplevel(main_screen)
     add_student_screen.title("Add Student Page")
-    add_student_screen.geometry("300x300")
+    add_student_screen.geometry("300x350")
 
     global first_name_s
     global last_name_s
     global id_s
     global class_name_s
+    global phone_number_s
     global first_name_entry_s
     global last_name_entry_s
     global id_entry_s
     global class_name_entry_s
+    global phone_number_entry_s
     first_name_s = StringVar()
     last_name_s = StringVar()
     id_s = StringVar()
     class_name_s = StringVar()
+    phone_number_s = StringVar()
     # Set label for user's instruction
     Label(add_student_screen, text="Please enter details below", bg="blue", fg="white").pack()
     Label(add_student_screen, text="").pack()
@@ -93,6 +96,11 @@ def add_student():
     class_name_lable.pack()
     class_name_entry_s = Entry(add_student_screen, textvariable=class_name_s)
     class_name_entry_s.pack()
+    # Set phone number label
+    class_name_lable = Label(add_student_screen, text="Phone Number * ")
+    class_name_lable.pack()
+    phone_number_entry_s = Entry(add_student_screen, textvariable=phone_number_s)
+    phone_number_entry_s.pack()
     # Set Add Competitor button
     Label(add_student_screen, text="").pack()
     Button(add_student_screen, text="Add Student", width=15, height=1, bg="blue", fg="white", command=new_student_user).pack()
@@ -103,11 +111,23 @@ def new_competitor_user():
     last_name_info = str(last_name_c.get())
     id_info = str(id_c.get())
     class_name_info = str(class_name_c.get())
-    print("Competitor{first name: " + first_name_info + ", last name: " + last_name_info + ",  id: " + id_info + ",  class name: " + class_name_info + "}")
     first_name_entry_c.delete(0, END)
     last_name_entry_c.delete(0, END)
     id_entry_c.delete(0, END)
     class_name_entry_c.delete(0, END)
+    wbC = openpyxl.load_workbook(COMPETITORS_DATABASE_LOCATION)
+    sheet = wbC.active
+    counter = 2
+    block_name = "A" + str(counter)
+    while sheet[block_name].value is not None:
+        counter += 1
+        block_name = "A" + str(counter)
+    sheet["A" + str(counter)] = first_name_info
+    sheet["B" + str(counter)] = last_name_info
+    sheet["C" + str(counter)] = 0
+    sheet["D" + str(counter)] = class_name_info
+    sheet["E" + str(counter)] = int(id_info)
+    wbC.save(COMPETITORS_DATABASE_LOCATION)
 
 
 def new_student_user():
@@ -115,11 +135,26 @@ def new_student_user():
     last_name_info = str(last_name_s.get())
     id_info = str(id_s.get())
     class_name_info = str(class_name_s.get())
-    print("Student{first name: " + first_name_info + ", last name: " + last_name_info + ",  id: " + id_info + ",  class name: " + class_name_info + "}")
+    phone_number_info = str(phone_number_s.get())
     first_name_entry_s.delete(0, END)
     last_name_entry_s.delete(0, END)
     id_entry_s.delete(0, END)
     class_name_entry_s.delete(0, END)
+    phone_number_entry_s.delete(0, END)
+    wbS = openpyxl.load_workbook(STUDENTS_DATABASE_LOCATION)
+    sheet = wbS.active
+    counter = 2
+    block_name = "A" + str(counter)
+    while sheet[block_name].value is not None:
+        counter += 1
+        block_name = "A" + str(counter)
+    sheet["A" + str(counter)] = first_name_info
+    sheet["B" + str(counter)] = last_name_info
+    sheet["C" + str(counter)] = "n"
+    sheet["D" + str(counter)] = class_name_info
+    sheet["E" + str(counter)] = int(id_info)
+    sheet["F" + str(counter)] = int(phone_number_info)
+    wbS.save(STUDENTS_DATABASE_LOCATION)
 
 
 def competitors_table():
@@ -190,10 +225,34 @@ def students_table():
             e.insert(END, students_list[i][j])
 
 
+def check_winners_visibility():
+    data_in = pd.read_excel(COMPETITORS_DATABASE_LOCATION)
+    df = pd.DataFrame(data_in, columns=['FirstName', 'LastName', 'VotesNumber', 'Class', 'Id', 'Picture', 'CanSee'])
+    competitors_list = df.values.tolist()
+    if str(competitors_list[0][6]) == "n":
+        return "red"
+    else:
+        return "green"
+
+
+def set_winners_visibility():
+    global winners_visibility_button_color
+    wbC = openpyxl.load_workbook(COMPETITORS_DATABASE_LOCATION)
+    sheet = wbC.active
+    if str(winners_visibility_button_color) == "red":
+        winners_visibility_button.configure(bg="green")
+        winners_visibility_button_color = "green"
+        sheet["G2"] = "y"
+    elif str(winners_visibility_button_color) == "green":
+        winners_visibility_button.configure(bg="red")
+        winners_visibility_button_color = "red"
+        sheet["G2"] = "n"
+    wbC.save(COMPETITORS_DATABASE_LOCATION)
 
 
 def main_screen():
-
+    global winners_visibility_button_color
+    winners_visibility_button_color = check_winners_visibility()
     global main_screen
     main_screen = Tk()
     main_screen.geometry("400x600")
@@ -207,6 +266,10 @@ def main_screen():
     Button(text="Competitors Table", height="2", width="30", command=competitors_table).pack()
     Label(text="").pack()
     Button(text="Students Table", height="2", width="30", command=students_table).pack()
+    Label(text="").pack()
+    global winners_visibility_button
+    winners_visibility_button = Button(text="Winners Visibility", bg=winners_visibility_button_color, height="2", width="30", command=set_winners_visibility)
+    winners_visibility_button.pack()
 
     main_screen.mainloop()
 
