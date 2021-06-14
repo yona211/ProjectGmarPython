@@ -90,7 +90,7 @@ def find_competitors(student_id, student_data, competitor_data):
             student_class = student[3]
     for competitor in competitor_data:
         if str(competitor[3]) == student_class:
-            competitors_in_class += str(competitor[0]) + " " + str(competitor[1]) + " " + str(competitor[2]) + " " + str(competitor[3]) + " " + str(competitor[4]) + " " + str(competitor[5][0]) + " "
+            competitors_in_class += str(competitor[0]) + " " + str(competitor[1]) + " " + str(competitor[2]) + " " + str(competitor[3]) + " " + str(competitor[4]) + " "
     return competitors_in_class
 
 
