@@ -7,7 +7,7 @@ import random
 
 # python C:\Users\yyyma\PycharmProjects\testMultipleClientsServerWithValidation\main.py
 MAX_MSG_LENGTH = 1024
-SERVER_PORT = 5555
+SERVER_PORT = 5556
 SERVER_IP = "0.0.0.0"
 COMPETITORS_DATABASE_LOCATION = 'C:/School App Project/competitors database.xlsx'
 STUDENTS_DATABASE_LOCATION = 'C:/School App Project/students database.xlsx'
@@ -22,7 +22,7 @@ def data_out_students():
 
 def data_out_competitors():
     data_in = pd.read_excel(COMPETITORS_DATABASE_LOCATION)
-    df = pd.DataFrame(data_in, columns=['FirstName', 'LastName', 'VotesNumber', 'Class', 'Id', 'Picture'])
+    df = pd.DataFrame(data_in, columns=['FirstName', 'LastName', 'VotesNumber', 'Class', 'Id', 'Picture', 'CanSee'])
     data_out = df.values.tolist()
     return data_out
 
@@ -107,14 +107,17 @@ def get_winner_in_class(class_name, competitor_data):
 def get_winners(competitor_data):
     to_return = ""
     classes_list = []
-    for competitor in competitor_data:
-        if str(competitor[3]) not in classes_list:
-            classes_list.append(str(competitor[3]))
-    for class_name in classes_list:
-        winner_in_class = get_winner_in_class(class_name, competitor_data)
-        to_return += class_name + " " + winner_in_class[0] + " " + winner_in_class[1] + " "
-    print(to_return)
-    return to_return
+    if str(competitor_data[0][6]) == "n":
+        return "n"
+    else:
+        for competitor in competitor_data:
+            if str(competitor[3]) not in classes_list:
+                classes_list.append(str(competitor[3]))
+        for class_name in classes_list:
+            winner_in_class = get_winner_in_class(class_name, competitor_data)
+            to_return += class_name + " " + winner_in_class[0] + " " + winner_in_class[1] + " "
+        print(to_return)
+        return to_return
 
 
 def get_phone_from_id(student_id, student_data):

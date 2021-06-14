@@ -12,7 +12,7 @@ def main():
         client_test_1 = socket.socket()
         client_test_1.connect((SERVER_IP, SERVER_PORT))
         # Send massage part
-        client_test_1.send("FIND 111111".encode())
+        client_test_1.send("FIND hjk".encode())
         # Receive data part and display
         data = client_test_1.recv(MAX_MSG_LENGTH).decode()
         print(data)
