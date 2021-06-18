@@ -4,11 +4,12 @@ import pandas as pd
 import openpyxl
 import math
 import random
+from PIL import Image
 
 # python C:\Users\yyyma\PycharmProjects\testMultipleClientsServerWithValidation\main.py
 MAX_MSG_LENGTH = 1024
 SERVER_PORT = 5556
-SERVER_IP = "0.0.0.0"
+SERVER_HOST = "0.0.0.0"
 COMPETITORS_DATABASE_LOCATION = 'C:/School App Project/competitors database.xlsx'
 STUDENTS_DATABASE_LOCATION = 'C:/School App Project/students database.xlsx'
 
@@ -90,7 +91,8 @@ def find_competitors(student_id, student_data, competitor_data):
             student_class = student[3]
     for competitor in competitor_data:
         if str(competitor[3]) == student_class:
-            competitors_in_class += str(competitor[0]) + " " + str(competitor[1]) + " " + str(competitor[2]) + " " + str(competitor[3]) + " " + str(competitor[4]) + " "
+            competitors_in_class += str(competitor[0]) + " " + str(competitor[1]) + " " + str(
+                competitor[2]) + " " + str(competitor[3]) + " " + str(competitor[4]) + " "
     return competitors_in_class
 
 
@@ -159,77 +161,74 @@ def vote_from_to(student_id, competitor_id, student_data, competitor_data):
     return "good"
 
 
-# Print students database
-competitors_data = data_out_competitors()
-print(competitors_data)
+def main():
+    # Print students database
+    competitors_data = data_out_competitors()
+    print(competitors_data)
 
-# Print competitors database
-students_data = data_out_students()
-print(students_data)
+    # Print competitors database
+    students_data = data_out_students()
+    print(students_data)
 
+    # Setting up the server
+    print("Setting up server...")
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind((SERVER_HOST, SERVER_PORT))
+    server_socket.listen()
+    print("Listening for clients...")
 
-# Setting up the server
-print("Setting up server...")
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind((SERVER_IP, SERVER_PORT))
-server_socket.listen()
-print("Listening for clients...")
+    client_sockets = []
+    messages_to_send = []
 
-client_sockets = []
-messages_to_send = []
-
-
-def set_otp(param, param1, param2):
-    return "5654"
-
-
-while True:
-    rlist, wlist, xlist = select.select([server_socket] + client_sockets, client_sockets, [])
-    for current_socket in rlist:
-        if current_socket is server_socket:
-            connection, client_address = current_socket.accept()
-            print("New client joined!", client_address)
-            client_sockets.append(connection)
-        else:
-            data = current_socket.recv(MAX_MSG_LENGTH).decode()
-            if data == "":
-                print("Connection closed")
-                client_sockets.remove(current_socket)
-                current_socket.close()
+    while True:
+        rlist, wlist, xlist = select.select([server_socket] + client_sockets, client_sockets, [])
+        for current_socket in rlist:
+            if current_socket is server_socket:
+                connection, client_address = current_socket.accept()
+                print("New client joined!", client_address)
+                client_sockets.append(connection)
             else:
-                data = str(data[2:])
+                data = current_socket.recv(MAX_MSG_LENGTH).decode()
+                if data == "":
+                    print("Connection closed")
+                    client_sockets.remove(current_socket)
+                    current_socket.close()
+                else:
+                    data = str(data[2:])
 
-                data_list = [word for word in data.split(" ")]
-                print(data_list)
-                answer = ""
-                if data_list[0] == "CHECK":
-                    answer = check_student(data_list[1], data_out_students())
-                elif data_list[0] == "FIND":
-                    answer = find_competitors(data_list[1], data_out_students(), data_out_competitors())
-                elif data_list[0] == "VOTE":
-                    answer = vote_from_to(data_list[1], data_list[2], data_out_students(), data_out_competitors())
-                elif data_list[0] == "PHONE":
-                    answer = get_phone_from_id(data_list[1], data_out_students())
-                elif data_list[0] == "OTP":
-                    answer = set_otp(data_list[1], data_list[2], data_out_students())
-                elif data_list[0] == "WINNERS":
-                    answer = get_winners(data_out_competitors())
-                messages_to_send.append((current_socket, answer))
+                    data_list = [word for word in data.split(" ")]
+                    print(data_list)
+                    answer = ""
+                    if data_list[0] == "CHECK":
+                        answer = check_student(data_list[1], data_out_students())
+                    elif data_list[0] == "FIND":
+                        answer = find_competitors(data_list[1], data_out_students(), data_out_competitors())
+                    elif data_list[0] == "VOTE":
+                        answer = vote_from_to(data_list[1], data_list[2], data_out_students(), data_out_competitors())
+                    elif data_list[0] == "PHONE":
+                        answer = get_phone_from_id(data_list[1], data_out_students())
+                    elif data_list[0] == "WINNERS":
+                        answer = get_winners(data_out_competitors())
+                    messages_to_send.append((current_socket, answer))
 
-    for message in messages_to_send:
-        current_socket, data = message
-        if current_socket in wlist:
-            if str(data) == "":
-                current_socket.send(" ".encode("utf-8"))
-                print("massage sent: " + str(data))
-                messages_to_send.remove(message)
-                current_socket.close()
-                client_sockets.remove(current_socket)
-                print("Connection closed")
-            else:
-                current_socket.send(data.encode("utf-8"))
-                print("massage sent: " + str(data))
-                messages_to_send.remove(message)
-                current_socket.close()
-                client_sockets.remove(current_socket)
-                print("Connection closed")
+        for message in messages_to_send:
+            current_socket, data = message
+            if current_socket in wlist:
+                if str(data) == "":
+                    current_socket.send(" ".encode("utf-8"))
+                    print("massage sent: " + str(data))
+                    messages_to_send.remove(message)
+                    current_socket.close()
+                    client_sockets.remove(current_socket)
+                    print("Connection closed")
+                else:
+                    current_socket.send(data.encode("utf-8"))
+                    print("massage sent: " + str(data))
+                    messages_to_send.remove(message)
+                    current_socket.close()
+                    client_sockets.remove(current_socket)
+                    print("Connection closed")
+
+
+if __name__ == '__main__':
+    main()
