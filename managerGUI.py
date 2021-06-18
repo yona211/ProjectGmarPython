@@ -167,28 +167,53 @@ def competitors_table():
     data_in = pd.read_excel(COMPETITORS_DATABASE_LOCATION)
     df = pd.DataFrame(data_in, columns=['FirstName', 'LastName', 'VotesNumber', 'Class', 'Id', 'Picture'])
     competitors_list = df.values.tolist()
-
-    for i in range(6):
+    for i in range(7):
         e = Entry(competitors_table_screen, width=20, fg='blue')
         e.grid(row=0, column=i)
         if i == 0:
-            e.insert(END, 'FirstName')
+            e.insert(END, 'Delete')
         elif i == 1:
-            e.insert(END, 'LastName')
+            e.insert(END, 'FirstName')
         elif i == 2:
-            e.insert(END, 'VotesNumber')
+            e.insert(END, 'LastName')
         elif i == 3:
-            e.insert(END, 'Class')
+            e.insert(END, 'VotesNumber')
         elif i == 4:
-            e.insert(END, 'Id')
+            e.insert(END, 'Class')
         elif i == 5:
+            e.insert(END, 'Id')
+        elif i == 6:
             e.insert(END, 'Picture')
 
+    global check_boxes_list_c
+    check_boxes_list_c = list()
     for i in range(len(competitors_list)):
+        var = IntVar()
+        check_boxes_list_c.append(var)
+        cb = Checkbutton(competitors_table_screen, text="Delete?", variable=check_boxes_list_c[i]).grid(row=i + 1, column=0)
         for j in range(6):
             e = Entry(competitors_table_screen, width=20, fg='blue')
-            e.grid(row=i+1, column=j)
+            e.grid(row=i+1, column=j+1)
             e.insert(END, competitors_list[i][j])
+
+    Button(competitors_table_screen, text="Delete Competitors", height="2", width="20", command=delete_competitors).grid(row=len(competitors_list)+2, column=2)
+
+
+def remove_row(sheet, row):
+    sheet.delete_rows(row[0].row, 1)
+
+
+def delete_competitors():
+    check_boxes_list_info = check_boxes_list_c
+    wbC = openpyxl.load_workbook(COMPETITORS_DATABASE_LOCATION)
+    sheet = wbC.active
+    winners_visibility = str(sheet["G2"].value)
+    for i in range(len(check_boxes_list_info)):
+        if check_boxes_list_info[i].get() == 1:
+            remove_row(sheet, sheet[i+2])
+            if i == 0:
+                sheet["G2"] = winners_visibility
+    wbC.save(COMPETITORS_DATABASE_LOCATION)
 
 
 def students_table():
@@ -202,27 +227,46 @@ def students_table():
     df = pd.DataFrame(data_in, columns=['FirstName', 'LastName', 'AlreadyVoted', 'Class', 'Id', 'PhoneNumber'])
     students_list = df.values.tolist()
 
-    for i in range(6):
+    for i in range(7):
         e = Entry(students_table_screen, width=20, fg='blue')
         e.grid(row=0, column=i)
         if i == 0:
-            e.insert(END, 'FirstName')
+            e.insert(END, 'Delete')
         elif i == 1:
-            e.insert(END, 'LastName')
+            e.insert(END, 'FirstName')
         elif i == 2:
-            e.insert(END, 'AlreadyVoted')
+            e.insert(END, 'LastName')
         elif i == 3:
-            e.insert(END, 'Class')
+            e.insert(END, 'AlreadyVoted')
         elif i == 4:
-            e.insert(END, 'Id')
+            e.insert(END, 'Class')
         elif i == 5:
+            e.insert(END, 'Id')
+        elif i == 6:
             e.insert(END, 'PhoneNumber')
 
+    global check_boxes_list_s
+    check_boxes_list_s = list()
     for i in range(len(students_list)):
+        var = IntVar()
+        check_boxes_list_s.append(var)
+        cb = Checkbutton(students_table_screen, text="Delete?", variable=check_boxes_list_s[i]).grid(row=i + 1, column=0)
         for j in range(6):
             e = Entry(students_table_screen, width=20, fg='blue')
-            e.grid(row=i + 1, column=j)
+            e.grid(row=i + 1, column=j + 1)
             e.insert(END, students_list[i][j])
+
+    Button(students_table_screen, text="Delete Students", height="2", width="20",command=delete_students).grid(row=len(students_list) + 2, column=2)
+
+
+def delete_students():
+    check_boxes_list_info = check_boxes_list_s
+    wbC = openpyxl.load_workbook(STUDENTS_DATABASE_LOCATION)
+    sheet = wbC.active
+    for i in range(len(check_boxes_list_info)):
+        if check_boxes_list_info[i].get() == 1:
+            remove_row(sheet, sheet[i+2])
+    wbC.save(STUDENTS_DATABASE_LOCATION)
 
 
 def check_winners_visibility():
