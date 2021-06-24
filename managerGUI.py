@@ -161,7 +161,7 @@ def competitors_table():
     global competitors_table_screen
     competitors_table_screen = Toplevel(main_screen)
     competitors_table_screen.title("Competitors Table Page")
-    competitors_table_screen.geometry("740x300")
+    competitors_table_screen.geometry("740x500")
 
     # get the competitors values from the excel file
     data_in = pd.read_excel(COMPETITORS_DATABASE_LOCATION)
@@ -220,7 +220,7 @@ def students_table():
     global students_table_screen
     students_table_screen = Toplevel(main_screen)
     students_table_screen.title("Students Table Page")
-    students_table_screen.geometry("740x300")
+    students_table_screen.geometry("870x500")
 
     # get the competitors values from the excel file
     data_in = pd.read_excel(STUDENTS_DATABASE_LOCATION)
