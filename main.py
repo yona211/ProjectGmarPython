@@ -4,7 +4,6 @@ import pandas as pd
 import openpyxl
 import math
 import random
-from PIL import Image
 
 # python C:\Users\yyyma\PycharmProjects\testMultipleClientsServerWithValidation\main.py
 MAX_MSG_LENGTH = 1024
@@ -181,24 +180,31 @@ def main():
     messages_to_send = []
 
     while True:
+        # The Select function that is return's 3 lists(rlist=read_list=recv, wlist=write_list=send, xlist=error_list=errors)
         rlist, wlist, xlist = select.select([server_socket] + client_sockets, client_sockets, [])
+        # the 'current_socket' parameter is the first socket that is in the needed help queue.
         for current_socket in rlist:
+            # checking if the 'current_socket' is the server's socket?
+            # and if it is, so we need to connect with 'accept()' function to him, and to put him on our 'client_sockets' list.
             if current_socket is server_socket:
                 connection, client_address = current_socket.accept()
                 print("New client joined!", client_address)
                 client_sockets.append(connection)
+            # else, if the 'current_socket' is already connected socket so we need to start deal with his request.
             else:
                 data = current_socket.recv(MAX_MSG_LENGTH).decode()
+                # if his data is empty we need to close his connection.
                 if data == "":
                     print("Connection closed")
                     client_sockets.remove(current_socket)
                     current_socket.close()
+                # else, we need to to what is his request and deal with her.
                 else:
                     data = str(data[2:])
-
                     data_list = [word for word in data.split(" ")]
                     print(data_list)
                     answer = ""
+                    # here we check his request and do whatever we need to make his command fulfill.
                     if data_list[0] == "CHECK":
                         answer = check_student(data_list[1], data_out_students())
                     elif data_list[0] == "FIND":
@@ -209,8 +215,12 @@ def main():
                         answer = get_phone_from_id(data_list[1], data_out_students())
                     elif data_list[0] == "WINNERS":
                         answer = get_winners(data_out_competitors())
+                    else:
+                        answer = ""
+                    # after his command checking, we put the answer in the 'messages_to_send' list.
                     messages_to_send.append((current_socket, answer))
 
+        # now we send to each client in the 'massages_to_send' queue the answer he need ro receive.
         for message in messages_to_send:
             current_socket, data = message
             if current_socket in wlist:
